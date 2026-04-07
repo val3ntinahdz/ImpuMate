@@ -1,0 +1,30 @@
+{
+  "name": "impumate-api",
+  "version": "1.0.0",
+  "description": "ImpuMate REST API — Tax advisory for Mexican freelancers",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "db:setup": "bash build/setup-db.sh",
+    "db:reset": "bash build/setup-db.sh --reset",
+    "test": "bash build/test-endpoints.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.5.0",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "nodemon": "^3.1.14"
+  }
+}
