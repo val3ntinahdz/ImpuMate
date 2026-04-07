@@ -29,6 +29,7 @@ import ExpenseNewPage from './pages/expenses/ExpenseNewPage'
 import ExpenseFormPage from './pages/expenses/ExpenseFormPage'
 import ExpenseResultPage from './pages/expenses/ExpenseResultPage'
 import DeductionsSummaryPage from './pages/expenses/DeductionsSummaryPage'
+import DirectoryPage from './pages/expenses/DirectoryPage'
 
 // Buffer pages
 import BufferPage from './pages/buffer/BufferPage'
@@ -127,6 +128,9 @@ export default function App() {
         } />
         <Route path="/app/expenses/summary" element={
           <RequireSession><DeductionsSummaryPage /></RequireSession>
+        } />
+        <Route path="/app/expenses/directory" element={
+          <RequireSession><DirectoryPage /></RequireSession>
         } />
 
         {/* Buffer module */}
