@@ -219,12 +219,23 @@ function distributeDeductions(
  * Base gravable = ingreso bruto − deducciones asignadas (mínimo 0).
  */
 function calculateTaxableBase(incomeByObligation, deductionsByObligation) {
-  return Object.fromEntries(
-    Object.entries(incomeByObligation).map(([obligation, income]) => [
-      obligation,
-      Math.max(income - (deductionsByObligation[obligation] || 0), 0),
-    ]),
-  );
+  
+  let taxableAccumBeforeDeduc = 0;
+  
+  for(let obligation in incomeByObligation)
+    taxableAccumBeforeDeduc += incomeByObligation[obligation];
+  
+  let taxableBase = taxableAccumBeforeDeduc;
+
+  for(let obligation in deductionsByObligation)
+    taxableBase -= deductionsByObligation[obligation];
+
+  let taxableBaseObj = {};
+
+  for(let obligation in incomeByObligation)
+    taxableBaseObj[obligation] = taxableBase;
+
+  return taxableBaseObj;
 }
 
 /**
