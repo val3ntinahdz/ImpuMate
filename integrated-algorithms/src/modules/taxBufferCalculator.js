@@ -327,6 +327,26 @@ function applySecurityMargins(isrByObligation, ivaOwed) {
   return { totalWithMargin, avgMargin, reasoning };
 }
 
+function calculateIVA(monthlyIncomeSources) {
+  let iva = 0;
+  for(let incomeSource of monthlyIncomeSources)
+  {
+    if(incomeSource.obligationType === 'SERVICIOS_PROFESIONALES_REGIMEN_GENERAL')
+    {
+      iva += incomeSource.grossMonthlyAmountMXN * FISCAL_CONSTANTS.GENERAL_IVA_RATE;
+    }
+  }
+  return iva;
+}
+
+function calculateWithheldIVA(iva) {
+  return iva * FISCAL_CONSTANTS.PROFESSIONAL_SERVICES_IVA_WITHHOLDING_RATE;
+}
+
+function calculateDueIVA(iva, withheldIVA) {
+  return iva - withheldIVA;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // FUNCIÓN PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
@@ -374,24 +394,45 @@ function calculateTaxBuffer(input) {
     activityDeductibles: Math.max(annualContext.totalApprovedActivityDeductiblesMXN  || 0, 0)
   }
   const monthlyIncomeSources = [];
-  for(let incomeSource in incomeSources)
+  for(let incomeSource of incomeSources)
+  {
     monthlyIncomeSources.push({
       obligationType: incomeSource.obligationType,
       grossMonthlyAmountMXN: incomeSource.grossAnnualAmountMXN / 12
     });
+  }
   // STEP 1 - Calculate Annual ISR
   const annualISR = calculateAnnualISR(incomeSources, deductibleExpenses);
   result.annualISR = annualISR;
 
   // STEP 2 - Calculate Monthly ISR per income source
   const monthlyISRperIncome = calculateMonthlyISRByObligation(monthlyIncomeSources);
+  result.monthlyIncomeSources = monthlyIncomeSources;
   result.monthlyISRperIncome = monthlyISRperIncome;
+  let annualWithheldISRperIncome = {};
+  for(let income in monthlyISRperIncome) {
+    annualWithheldISRperIncome[income] = monthlyISRperIncome[income] * 12;
+  }
+  result.annualWithheldISRperIncome = annualWithheldISRperIncome;
 
   // STEP 3 - How many taxes will I pay for the current fiscal session?
   let dueTaxes = annualISR;
   for(let obligation in monthlyISRperIncome)
-    dueTaxes -= monthlyISRperIncome[obligation];
-  result.dueTaxes;
+    dueTaxes -= monthlyISRperIncome[obligation] * 12;
+  result.dueTaxes = dueTaxes;
+  result.dueTaxesMonthly = dueTaxes / 12;
+
+  // STEP 4 - Calculate IVA
+  let IVA = calculateIVA(monthlyIncomeSources); // Monthly IVA
+  result.IVA = IVA;
+
+  // STEP 5 - Withheld IVA
+  let withheldIVA = calculateWithheldIVA(IVA);
+  result.withheldIVA = withheldIVA;
+
+  // STEP 6 - Due IVA
+  let dueIVA = calculateDueIVA(IVA, withheldIVA);
+  result.dueIVA = dueIVA;
 
   return result;
 }
