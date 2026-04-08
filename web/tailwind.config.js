@@ -4,19 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary:   '#1A6B4A',
-        accent:    '#27AE60',
-        secondary: '#2C3E50',
-        surface: {
-          m1:    '#EAF4F0',
-          m2:    '#FFF3E0',
-          m3:    '#E8EAF6',
-          gray:  '#F5F5F5',
-          input: '#F8FBF9',
-        },
+        primary:   'var(--color-primary)',
+        accent:    'var(--color-accent)',
+        secondary: 'var(--color-ink)',
+        bg:        'var(--color-bg)',
+        surface:   'var(--color-surface)',
+        border:    'var(--color-border)',
+        ink:       'var(--color-ink)',
         text: {
-          primary:   '#2C3E50',
-          secondary: '#7F8C8D',
+          primary: 'var(--color-text-primary)',
+          muted:   'var(--color-text-muted)',
         },
         status: {
           error:   '#E74C3C',
@@ -26,7 +23,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'sans-serif'],
       },
     },
   },

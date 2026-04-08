@@ -1,0 +1,67 @@
+:root {
+  /* ── Palette ─────────────────────────────────────── */
+  --color-forest: #2D5016;
+  --color-lime:   #B5E550;
+  --color-snow:   #FAFAF7;
+  --color-fog:    #F2F2EE;
+  --color-ink:    #1C1C1A;
+
+  /* ── Semantic aliases ────────────────────────────── */
+  --color-bg:           var(--color-snow);
+  --color-surface:      var(--color-fog);
+  --color-primary:      var(--color-forest);
+  --color-accent:       var(--color-lime);
+  --color-text-primary: var(--color-ink);
+  --color-text-muted:   rgba(28, 28, 26, 0.55);
+  --color-text-on-dark: var(--color-snow);
+  --color-text-accent:  var(--color-lime);
+  --color-border:       rgba(28, 28, 26, 0.1);
+  --color-border-strong: rgba(28, 28, 26, 0.2);
+
+  /* ── Typography ──────────────────────────────────── */
+  --font-family:          'Plus Jakarta Sans', sans-serif;
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+
+  --font-size-xs:   11px;
+  --font-size-sm:   13px;
+  --font-size-base: 15px;
+  --font-size-md:   17px;
+  --font-size-lg:   20px;
+  --font-size-xl:   24px;
+  --font-size-2xl:  30px;
+  --font-size-3xl:  38px;
+
+  --line-height-tight: 1.25;
+  --line-height-base:  1.6;
+
+  /* ── Spacing (4px base) ──────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Border radius ───────────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  /* ── Transitions ─────────────────────────────────── */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+
+  /* ── Z-index ─────────────────────────────────────── */
+  --z-base:    0;
+  --z-raised:  10;
+  --z-overlay: 100;
+  --z-modal:   200;
+  --z-toast:   300;
+}

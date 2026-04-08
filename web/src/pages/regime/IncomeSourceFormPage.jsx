@@ -111,7 +111,7 @@ export default function IncomeSourceFormPage() {
       } else {
         await createIncomeSource(sessionId, payload)
       }
-      navigate('/app/regime/sources')
+      navigate('/app/profile?tab=sources')
     } catch (err) {
       setApiError(err.response?.data?.error || 'Error al guardar la fuente de ingreso.')
     } finally {
@@ -127,8 +127,8 @@ export default function IncomeSourceFormPage() {
         title={isEdit ? 'Editar Fuente de Ingreso' : 'Agregar Fuente de Ingreso'}
         subtitle="Describe cómo obtienes este ingreso."
         breadcrumb={[
-          { label: 'Régimen', href: '/app/regime' },
-          { label: 'Fuentes', href: '/app/regime/sources' },
+          { label: 'Perfil', href: '/app/profile' },
+          { label: 'Fuentes de ingreso', href: '/app/profile?tab=sources' },
           { label: isEdit ? 'Editar' : 'Nueva fuente' },
         ]}
       />
@@ -185,7 +185,7 @@ export default function IncomeSourceFormPage() {
 
         <div className="flex gap-3 pt-2">
           <PrimaryButton label={isEdit ? 'Guardar cambios' : 'Agregar fuente'} type="submit" loading={saving} className="flex-1" />
-          <SecondaryButton label="Cancelar" onClick={() => navigate('/app/regime/sources')} />
+          <SecondaryButton label="Cancelar" onClick={() => navigate('/app/profile?tab=sources')} />
         </div>
       </form>
     </AppLayout>

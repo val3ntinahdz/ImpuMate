@@ -64,7 +64,7 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center mx-auto mb-3">
-            <span className="text-white font-bold text-lg">IM</span>
+            <span className="text-primary font-bold text-lg">IM</span>
           </div>
           <h1 className="text-2xl font-bold text-text-primary">Iniciar sesión</h1>
           <p className="text-sm text-text-secondary mt-1">Bienvenido de vuelta</p>
