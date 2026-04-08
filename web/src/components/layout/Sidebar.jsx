@@ -25,7 +25,7 @@ const navLinks = [
     ),
   },
   {
-    label: 'Apartado',
+    label: 'Fondo',
     to: '/app/buffer',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,20 +59,20 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-60 flex-shrink-0 bg-secondary min-h-screen flex flex-col">
+    <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-100 min-h-screen flex flex-col">
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-white/10">
+      <div className="px-6 py-6 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <img src={logo} alt="Impumate" />
         </div>
-        <p className="text-white/50 text-xs mt-1">Educación fiscal</p>
+        <p className="text-gray-400 text-xs mt-1">Educación fiscal</p>
       </div>
 
       {/* Session indicator */}
       {exerciseYear && (
-        <div className="mx-4 mt-4 px-3 py-2 bg-white/10 rounded-lg">
-          <p className="text-white/60 text-xs">Ejercicio activo</p>
-          <p className="text-white font-semibold text-sm">{exerciseYear}</p>
+        <div className="mx-4 mt-4 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+          <p className="text-gray-400 text-xs">Ejercicio activo</p>
+          <p className="text-gray-800 font-semibold text-sm">{exerciseYear}</p>
         </div>
       )}
 
@@ -85,8 +85,8 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-accent text-primary font-semibold'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                  ? 'bg-primary/10 text-primary font-semibold'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`
             }
           >
@@ -97,14 +97,14 @@ export default function Sidebar() {
       </nav>
 
       {/* User + logout */}
-      <div className="px-4 py-4 border-t border-white/10">
+      <div className="px-4 py-4 border-t border-gray-100">
         <div className="mb-3 px-1">
-          <p className="text-white/90 text-sm font-medium truncate">{nombreCompleto || 'Usuario'}</p>
-          <p className="text-white/50 text-xs truncate">{email}</p>
+          <p className="text-gray-800 text-sm font-medium truncate">{nombreCompleto || 'Usuario'}</p>
+          <p className="text-gray-400 text-xs truncate">{email}</p>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

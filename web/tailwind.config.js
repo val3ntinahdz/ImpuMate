@@ -8,12 +8,20 @@ export default {
         accent:    'var(--color-accent)',
         secondary: 'var(--color-ink)',
         bg:        'var(--color-bg)',
-        surface:   'var(--color-surface)',
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          input:   'var(--color-surface)',
+          gray:    'var(--color-surface)',
+          m1:      '#F0FDF4',
+          m2:      '#FFF7ED',
+          m3:      '#EEF2FF',
+        },
         border:    'var(--color-border)',
         ink:       'var(--color-ink)',
         text: {
-          primary: 'var(--color-text-primary)',
-          muted:   'var(--color-text-muted)',
+          primary:   'var(--color-text-primary)',
+          muted:     'var(--color-text-muted)',
+          secondary: 'var(--color-text-muted)',
         },
         status: {
           error:   '#E74C3C',

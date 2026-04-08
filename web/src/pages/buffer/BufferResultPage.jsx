@@ -83,16 +83,16 @@ export default function BufferResultPage() {
     }
   }
 
-  if (loading) return <LoadingSpinner message="Calculando tu buffer fiscal…" />
+  if (loading) return <LoadingSpinner message="Calculando tu fondo para impuestos…" />
 
   if (error && !result) {
     return (
       <AppLayout>
-        <PageHeader title="Buffer Fiscal" />
+        <PageHeader title="Fondo para Impuestos" />
         <AlertBanner type="error" message={error} />
         <div className="mt-4 flex gap-3">
           <PrimaryButton label="Reintentar" onClick={() => load(true)} />
-          <SecondaryButton label="Configurar buffer" onClick={() => navigate('/app/buffer')} />
+          <SecondaryButton label="Configurar fondo" onClick={() => navigate('/app/buffer')} />
         </div>
       </AppLayout>
     )
@@ -103,9 +103,9 @@ export default function BufferResultPage() {
   return (
     <AppLayout>
       <PageHeader
-        title="Buffer Fiscal Mensual"
+        title="Fondo para Impuestos"
         subtitle={`Ejercicio ${exerciseYear || ''}`}
-        breadcrumb={[{ label: 'Buffer', href: '/app/buffer' }, { label: 'Resultado' }]}
+        breadcrumb={[{ label: 'Fondo para Impuestos', href: '/app/buffer' }, { label: 'Resultado' }]}
       />
 
       {error && <div className="mb-4"><AlertBanner type="error" message={error} /></div>}

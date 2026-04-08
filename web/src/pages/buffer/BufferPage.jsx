@@ -80,13 +80,13 @@ export default function BufferPage() {
       await calculateTaxBuffer(sessionId)
       navigate('/app/buffer/result')
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al calcular el buffer.')
+      setError(err.response?.data?.error || 'Error al calcular el fondo.')
     } finally {
       setCalculating(false)
     }
   }
 
-  if (loading) return <LoadingSpinner message="Cargando datos para el buffer…" />
+  if (loading) return <LoadingSpinner message="Cargando datos…" />
 
   const noDeductions = !summary || summary.totalDeductiblesMxn === 0
 
@@ -100,9 +100,9 @@ export default function BufferPage() {
   return (
     <AppLayout>
       <PageHeader
-        title="Configurar Buffer Fiscal"
+        title="Fondo para Impuestos"
         subtitle="Ajusta los parámetros antes de calcular cuánto debes apartar cada mes."
-        breadcrumb={[{ label: 'Buffer', href: '/app/buffer' }]}
+        breadcrumb={[{ label: 'Fondo para Impuestos', href: '/app/buffer' }]}
       />
 
       {error && <div className="mb-4"><AlertBanner type="error" message={error} /></div>}
@@ -124,7 +124,7 @@ export default function BufferPage() {
           <h2 className="font-semibold text-text-primary">Parámetros del cálculo</h2>
 
           <SelectDropdown
-            label="Horizonte del buffer"
+            label="Horizonte del fondo"
             name="bufferHorizonMonths"
             value={form.bufferHorizonMonths}
             onChange={handleChange}
@@ -193,7 +193,7 @@ export default function BufferPage() {
 
       <div className="flex gap-3 mt-6">
         <PrimaryButton
-          label={calculating ? 'Calculando…' : 'Calcular mi buffer mensual →'}
+          label={calculating ? 'Calculando…' : 'Calcular mi fondo mensual'}
           onClick={handleCalculate}
           loading={calculating}
           className="flex-1"

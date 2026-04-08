@@ -171,3 +171,21 @@ select:focus {
 .font-semibold {
   font-weight: var(--font-weight-semibold);
 }
+
+/* Mobile feel */
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
+}
+
+/* Safe area for notched phones */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* Minimum touch targets (excludes toggle switches and inline text links) */
+button:not([role="switch"]), [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}

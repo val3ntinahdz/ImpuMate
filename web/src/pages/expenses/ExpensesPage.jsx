@@ -210,7 +210,7 @@ export default function ExpensesPage() {
       {expenses.length > 0 && (
         <div className="mt-4">
           <PrimaryButton
-            label="Ver mi buffer fiscal →"
+            label="Ver mi fondo para impuestos"
             onClick={() => navigate('/app/buffer')}
             className="w-full"
           />

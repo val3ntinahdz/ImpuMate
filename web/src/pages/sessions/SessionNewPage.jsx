@@ -118,7 +118,7 @@ export default function SessionNewPage() {
           required
         />
         <SelectDropdown
-          label="Horizonte del buffer"
+          label="Horizonte del fondo"
           name="bufferHorizonMonths"
           value={form.bufferHorizonMonths}
           onChange={handleChange}

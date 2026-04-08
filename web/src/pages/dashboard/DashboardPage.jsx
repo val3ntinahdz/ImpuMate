@@ -18,7 +18,7 @@ function ModuleCard({ title, icon, color, children, cta, onCta, ctaSecondary, on
   return (
     <div className={`rounded-2xl p-5 border ${color}`}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-2xl">{icon}</span>
+        <span className="w-5 h-5 text-text-primary flex-shrink-0">{icon}</span>
         <h2 className="font-semibold text-text-primary">{title}</h2>
       </div>
       <div className="mb-4">{children}</div>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
         {/* Module 1 — Régimen */}
         <ModuleCard
           title="Módulo 1 — Régimen"
-          icon="🏛️"
+          icon={<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
           color="border-green-200 bg-surface-m1"
           cta={hasRegime ? 'Ver resultado' : 'Empezar'}
           onCta={() => navigate(hasRegime ? '/app/profile?tab=regime' : '/app/profile?tab=sources')}
@@ -124,7 +124,7 @@ export default function DashboardPage() {
         {/* Module 2 — Deducibles */}
         <ModuleCard
           title="Módulo 2 — Deducibles"
-          icon="🧾"
+          icon={<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
           color="border-orange-200 bg-surface-m2"
           cta={hasExpenses ? 'Ver gastos' : 'Agregar gasto'}
           onCta={() => navigate(hasExpenses ? '/app/expenses' : '/app/expenses/new')}
@@ -145,10 +145,10 @@ export default function DashboardPage() {
           )}
         </ModuleCard>
 
-        {/* Module 3 — Buffer */}
+        {/* Module 3 — Fondo para impuestos */}
         <ModuleCard
-          title="Módulo 3 — Buffer"
-          icon="💰"
+          title="Módulo 3 — Fondo"
+          icon={<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
           color="border-indigo-200 bg-surface-m3"
           cta={hasBuffer ? 'Ver resultado' : 'Calcular'}
           onCta={() => navigate(hasBuffer ? '/app/buffer/result' : '/app/buffer')}
