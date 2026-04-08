@@ -1,169 +1,196 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import AlertBanner from '../../components/ui/AlertBanner'
-import PrimaryButton from '../../components/ui/PrimaryButton'
-import SecondaryButton from '../../components/ui/SecondaryButton'
-import StatusBadge from '../../components/ui/StatusBadge'
-import { getSession } from '../../api/sessions'
-import { getRegimeObligations } from '../../api/regime'
-import { getDeductionsSummary } from '../../api/deductions'
-import { getLatestBuffer } from '../../api/taxBuffer'
+import { formatMXN } from '../../utils/format'
 import useSessionStore from '../../store/useSessionStore'
-import useAuthStore from '../../store/useAuthStore'
-import { formatMXN, OBLIGATION_LABELS } from '../../utils/format'
 
-function ModuleCard({ title, icon, color, children, cta, onCta, ctaSecondary, onCtaSecondary }) {
-  return (
-    <div className={`rounded-2xl p-5 border ${color}`}>
-      <div className="flex items-center gap-2 mb-3">
-        <span className="w-5 h-5 text-text-primary flex-shrink-0">{icon}</span>
-        <h2 className="font-semibold text-text-primary">{title}</h2>
-      </div>
-      <div className="mb-4">{children}</div>
-      {cta && (
-        <div className="flex gap-2">
-          <PrimaryButton label={cta} onClick={onCta} className="flex-1 text-xs px-3 py-2" />
-          {ctaSecondary && (
-            <SecondaryButton label={ctaSecondary} onClick={onCtaSecondary} className="text-xs px-3 py-2" />
-          )}
-        </div>
-      )}
-    </div>
-  )
+// TODO: replace with real API call using sessionId
+const MOCK_DATA = {
+  // User
+  userName: 'Valentina',
+
+  // Regimes (user has 2)
+  regimes: [
+    { label: 'Sueldos y Salarios',           ingresoAnual: 240000 },
+    { label: 'Régimen General Serv. Prof.',   ingresoAnual: 200000 },
+  ],
+  categoriaFiscal: 'Sueldos y Salarios + Serv. Profesionales',
+
+  // ISR
+  isrAnual:           74620,  // ISR anual estimado total (ambos regímenes)
+  pagosProvisionales: 28000,  // pagos provisionales acumulados en el año
+  // ISR neto = isrAnual - pagosProvisionales = 46,620 a pagar
+
+  // IVA — solo aplica al régimen de Serv. Profesionales
+  // IVA causado: 200,000 * 0.16 = 32,000
+  // Sin IVA acreditable por ahora
+  ivaCausado: 32000,
+
+  // Progress bar — pagos provisionales vs ISR anual
+  isrProgressPercent: Math.round((28000 / 74620) * 100), // ~37%
+
+  // Deducibles
+  totalDeductivosMxn:   18450,
+  topeGlobalDeducibles: 32396,
+
+  // Fondo para impuestos (Tax Buffer)
+  apartadoAcumulado: 2600,
+  apartadoMeta:      4191,
+  apartadoPercent:   Math.round((2600 / 4191) * 100), // ~62%
 }
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { sessionId, exerciseYear } = useSessionStore()
-  const { nombreCompleto } = useAuthStore()
-
-  const [sessionData, setSessionData] = useState(null)
-  const [obligations, setObligations] = useState(null)
-  const [summary, setSummary] = useState(null)
-  const [buffer, setBuffer] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    Promise.all([
-      getSession(sessionId).catch(() => null),
-      getRegimeObligations(sessionId).catch(() => null),
-      getDeductionsSummary(sessionId).catch(() => null),
-      getLatestBuffer(sessionId).catch(() => null),
-    ])
-      .then(([sess, obls, sum, buf]) => {
-        setSessionData(sess)
-        setObligations(obls)
-        setSummary(sum)
-        setBuffer(buf)
-      })
-      .catch(err => setError(err.response?.data?.error || 'Error al cargar el dashboard.'))
-      .finally(() => setLoading(false))
-  }, [sessionId])
-
-  if (loading) return <LoadingSpinner message="Cargando tu dashboard…" />
-
-  const hasRegime = obligations?.obligations?.length > 0
-  const hasExpenses = (summary?.approvedCount || 0) + (summary?.rejectedCount || 0) > 0
-  const hasBuffer = buffer?.recommendedMonthlyBuffer !== undefined
+  const { sessionId } = useSessionStore()
 
   return (
-    <AppLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-primary">
-          Hola{nombreCompleto ? `, ${nombreCompleto.split(' ')[0]}` : ''}
-        </h1>
-        <p className="text-text-secondary text-sm mt-1">Ejercicio fiscal {exerciseYear} · {sessionData?.bufferHorizonMonths || 3} meses de horizonte</p>
-      </div>
+    <AppLayout fullWidth>
+      <div className="bg-gray-50 min-h-screen pb-24">
+        <section className="px-5 pt-5">
+          <h2 className="text-xl font-semibold text-gray-900">
+            ¡Hola, {MOCK_DATA.userName}! 👋
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Aquí está tu resumen fiscal actualizado.
+          </p>
+        </section>
 
-      {error && <div className="mb-4"><AlertBanner type="error" message={error} /></div>}
+        <section className="px-5 mt-5">
+          <div
+            style={{ background: '#2D5016', borderRadius: 16, padding: 20 }}
+          >
+            {/* Top row */}
+            <div className="flex items-start justify-between gap-3">
+              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
+                ISR anual estimado
+              </span>
+              <span style={{ color: '#fff', fontSize: 22, fontWeight: 600, lineHeight: 1.2 }}>
+                {formatMXN(MOCK_DATA.isrAnual)}
+              </span>
+            </div>
 
-      {/* First-time guide banner */}
-      {!hasRegime && (
-        <div className="mb-5">
-          <AlertBanner
-            type="info"
-            message="Empieza desde Perfil → Fuentes de ingreso para identificar tu régimen fiscal. Esto determina qué puedes deducir y cuánto debes pagar."
-          />
-        </div>
-      )}
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.25)',
+                height: 8,
+                borderRadius: 999,
+                marginTop: 14,
+                marginBottom: 14,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  background: '#B5E550',
+                  width: MOCK_DATA.isrProgressPercent + '%',
+                  height: '100%',
+                  borderRadius: 999,
+                }}
+              />
+            </div>
 
-      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
-        {/* Module 1 — Régimen */}
-        <ModuleCard
-          title="Módulo 1 — Régimen"
-          icon={<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-          color="border-green-200 bg-surface-m1"
-          cta={hasRegime ? 'Ver resultado' : 'Empezar'}
-          onCta={() => navigate(hasRegime ? '/app/profile?tab=regime' : '/app/profile?tab=sources')}
-          ctaSecondary={hasRegime ? 'Corregir fuentes' : null}
-          onCtaSecondary={() => navigate('/app/profile?tab=sources')}
-        >
-          {hasRegime ? (
-            <div>
-              <p className="text-sm text-text-secondary mb-2">
-                {obligations.obligations.length} obligación{obligations.obligations.length !== 1 ? 'es' : ''} activa{obligations.obligations.length !== 1 ? 's' : ''}
+            <div className="flex justify-between gap-2">
+              <div>
+                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>
+                  {formatMXN(MOCK_DATA.pagosProvisionales)}
+                </p>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 2 }}>
+                  en pagos provisionales
+                </p>
+              </div>
+              <div className="text-right">
+                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>
+                  {formatMXN(MOCK_DATA.ivaCausado)}
+                </p>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 2 }}>
+                  IVA a pagar
+                </p>
+              </div>
+            </div>
+
+            {/* Separator */}
+            <div
+              style={{
+                borderTop: '1px solid rgba(255,255,255,0.2)',
+                marginTop: 14,
+                marginBottom: 10,
+              }}
+            />
+
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, textAlign: 'center' }}>
+              ISR pendiente:{' '}
+              <span style={{ fontWeight: 600 }}>
+                {formatMXN(MOCK_DATA.isrAnual - MOCK_DATA.pagosProvisionales)}
+              </span>
+            </p>
+          </div>
+        </section>
+
+        
+        <section className="px-5 mt-4">
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-500">Acumulado</p>
+              <p className="text-xl font-semibold text-gray-900 mt-0.5">
+                {formatMXN(MOCK_DATA.totalDeductivosMxn)}
               </p>
-              <div className="flex flex-wrap gap-1">
-                {obligations.obligations.map(obl => (
-                  <StatusBadge
-                    key={obl}
-                    status={obl.includes('RESICO') ? 'RESICO' : 'INFO'}
-                    label={OBLIGATION_LABELS[obl] || obl}
-                  />
-                ))}
-              </div>
+              <p className="text-xs text-gray-500 mt-3">Puedes deducir hasta</p>
+              <p className="text-xl font-semibold mt-0.5" style={{ color: '#2D5016' }}>
+                {formatMXN(MOCK_DATA.topeGlobalDeducibles)}
+              </p>
             </div>
-          ) : (
-            <p className="text-sm text-text-secondary">Aún no identificaste tu régimen fiscal.</p>
-          )}
-        </ModuleCard>
 
-        {/* Module 2 — Deducibles */}
-        <ModuleCard
-          title="Módulo 2 — Deducibles"
-          icon={<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
-          color="border-orange-200 bg-surface-m2"
-          cta={hasExpenses ? 'Ver gastos' : 'Agregar gasto'}
-          onCta={() => navigate(hasExpenses ? '/app/expenses' : '/app/expenses/new')}
-          ctaSecondary={hasExpenses ? 'Ver resumen' : null}
-          onCtaSecondary={() => navigate('/app/expenses/summary')}
-        >
-          {hasExpenses && summary ? (
-            <div>
-              <p className="text-lg font-bold text-primary">{formatMXN(summary.totalDeductiblesMxn)}</p>
-              <p className="text-xs text-text-secondary mt-0.5">total deducible</p>
-              <div className="flex gap-3 mt-2 text-xs">
-                <span className="text-status-success font-semibold">{summary.approvedCount} aprobados</span>
-                <span className="text-status-error font-semibold">{summary.rejectedCount} rechazados</span>
-              </div>
+            <div className="flex-shrink-0">
+              <button
+                onClick={() => navigate('/app/expenses')}
+                style={{
+                  background: '#B5E550',
+                  color: '#2D5016',
+                  fontWeight: 600,
+                  borderRadius: 10,
+                  padding: 16,
+                  minWidth: 110,
+                  minHeight: 80,
+                  textAlign: 'center',
+                  lineHeight: 1.3,
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
+                }}
+              >
+                <span style={{ fontSize: 18 }}>→</span>
+                <span style={{ fontSize: 13 }}>Ver desglose completo</span>
+              </button>
             </div>
-          ) : (
-            <p className="text-sm text-text-secondary">Sin gastos registrados todavía.</p>
-          )}
-        </ModuleCard>
+          </div>
+        </section>
 
-        {/* Module 3 — Fondo para impuestos */}
-        <ModuleCard
-          title="Módulo 3 — Fondo"
-          icon={<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
-          color="border-indigo-200 bg-surface-m3"
-          cta={hasBuffer ? 'Ver resultado' : 'Calcular'}
-          onCta={() => navigate(hasBuffer ? '/app/buffer/result' : '/app/buffer')}
-          ctaSecondary={hasBuffer ? 'Recalcular' : null}
-          onCtaSecondary={() => navigate('/app/buffer')}
-        >
-          {hasBuffer ? (
-            <div>
-              <p className="text-2xl font-bold text-secondary">{formatMXN(buffer.recommendedMonthlyBuffer)}</p>
-              <p className="text-xs text-text-secondary mt-1">a apartar cada mes</p>
-            </div>
-          ) : (
-            <p className="text-sm text-text-secondary">Calcula cuánto debes apartar cada mes.</p>
-          )}
-        </ModuleCard>
+        <section className="px-5 mt-4">
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500">Régimen fiscal identificado</p>
+            <p className="text-base font-medium text-gray-900 mt-1">
+              {MOCK_DATA.categoriaFiscal}
+            </p>
+            <button
+              onClick={() => navigate('/app/regime/sources/new')}
+              style={{
+                background: '#B5E550',
+                color: '#2D5016',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                width: '100%',
+              }}
+              className="mt-4 rounded-xl py-3 text-sm"
+            >
+              Agregar fuente de ingreso
+            </button>
+          </div>
+        </section>
       </div>
     </AppLayout>
   )

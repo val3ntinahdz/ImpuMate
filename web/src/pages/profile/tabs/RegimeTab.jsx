@@ -8,7 +8,6 @@ import SecondaryButton from '../../../components/ui/SecondaryButton'
 import SectionDivider from '../../../components/ui/SectionDivider'
 import { getRegimeResults } from '../../../api/regime'
 import useSessionStore from '../../../store/useSessionStore'
-import { OBLIGATION_LABELS } from '../../../utils/format'
 
 const CATEGORIA_LABELS = {
   SUELDOS_Y_SALARIOS: 'Sueldos y Salarios',
@@ -25,17 +24,11 @@ function ObligationCard({ obl }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-start justify-between gap-3 mb-3">
-        <div>
-          <StatusBadge
-            status={isResico ? 'RESICO' : 'INFO'}
-            label={CATEGORIA_LABELS[obl.categoriaFiscal] || obl.categoriaFiscal}
-            size="lg"
-          />
-        </div>
+        <h1 className='font-bold text-primary'>{CATEGORIA_LABELS[obl.categoriaFiscal] || obl.categoriaFiscal}</h1>
       </div>
 
       {obl.motivoDeteccion && (
-        <p className="text-sm text-text-secondary mb-3 italic">"{obl.motivoDeteccion}"</p>
+        <p className="text-sm text-text-secondary mb-3">{obl.motivoDeteccion}</p>
       )}
 
       <div className="grid grid-cols-2 gap-3 text-xs mb-3">

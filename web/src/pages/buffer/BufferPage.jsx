@@ -100,9 +100,9 @@ export default function BufferPage() {
   return (
     <AppLayout>
       <PageHeader
-        title="Fondo para Impuestos"
+        title="Fondo para impuestos"
         subtitle="Ajusta los parámetros antes de calcular cuánto debes apartar cada mes."
-        breadcrumb={[{ label: 'Fondo para Impuestos', href: '/app/buffer' }]}
+        breadcrumb={[{ label: 'Fondo para impuestos', href: '/app/buffer' }]}
       />
 
       {error && <div className="mb-4"><AlertBanner type="error" message={error} /></div>}
