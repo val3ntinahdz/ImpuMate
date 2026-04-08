@@ -8,9 +8,9 @@ export default function PrimaryButton({ label, onClick, loading = false, disable
       disabled={disabled || loading}
       className={`
         inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg
-        bg-accent text-white font-semibold text-sm
+        bg-primary text-accent font-semibold text-sm
         transition-all duration-150
-        hover:bg-green-600 active:bg-green-700
+        hover:opacity-90 active:opacity-80
         disabled:opacity-50 disabled:cursor-not-allowed
         ${className}
       `}

@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import AppLayout from '../../components/layout/AppLayout'
-import PageHeader from '../../components/ui/PageHeader'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import AlertBanner from '../../components/ui/AlertBanner'
-import StatusBadge from '../../components/ui/StatusBadge'
-import PrimaryButton from '../../components/ui/PrimaryButton'
-import SecondaryButton from '../../components/ui/SecondaryButton'
-import SectionDivider from '../../components/ui/SectionDivider'
-import { getRegimeResults } from '../../api/regime'
-import useSessionStore from '../../store/useSessionStore'
-import { OBLIGATION_LABELS } from '../../utils/format'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner'
+import AlertBanner from '../../../components/ui/AlertBanner'
+import StatusBadge from '../../../components/ui/StatusBadge'
+import PrimaryButton from '../../../components/ui/PrimaryButton'
+import SecondaryButton from '../../../components/ui/SecondaryButton'
+import SectionDivider from '../../../components/ui/SectionDivider'
+import { getRegimeResults } from '../../../api/regime'
+import useSessionStore from '../../../store/useSessionStore'
+import { OBLIGATION_LABELS } from '../../../utils/format'
 
 const CATEGORIA_LABELS = {
   SUELDOS_Y_SALARIOS: 'Sueldos y Salarios',
@@ -81,7 +79,7 @@ function ObligationCard({ obl }) {
   )
 }
 
-export default function RegimeResultPage() {
+export default function RegimeTab() {
   const navigate = useNavigate()
   const { sessionId } = useSessionStore()
   const [result, setResult] = useState(null)
@@ -99,13 +97,15 @@ export default function RegimeResultPage() {
 
   if (error) {
     return (
-      <AppLayout>
-        <PageHeader title="Resultado del Régimen" />
+      <div>
         <AlertBanner type="error" message={error} />
         <div className="mt-4">
-          <SecondaryButton label="← Volver a fuentes de ingreso" onClick={() => navigate('/app/regime/sources')} />
+          <SecondaryButton
+            label="← Ir a fuentes de ingreso"
+            onClick={() => navigate('/app/profile?tab=sources')}
+          />
         </div>
-      </AppLayout>
+      </div>
     )
   }
 
@@ -116,14 +116,7 @@ export default function RegimeResultPage() {
   const nextSteps = result?.recommendedNextSteps || []
 
   return (
-    <AppLayout>
-      <PageHeader
-        title="Resultado del Régimen Fiscal"
-        subtitle="Basado en las fuentes de ingreso que registraste."
-        breadcrumb={[{ label: 'Régimen', href: '/app/regime' }, { label: 'Resultado' }]}
-      />
-
-      {/* Executive summary */}
+    <div>
       <div className="bg-surface-m1 rounded-xl p-5 mb-6">
         <p className="text-lg font-bold text-primary">
           {summary.totalObligaciones === 1
@@ -137,21 +130,18 @@ export default function RegimeResultPage() {
         </div>
       </div>
 
-      {/* SAT update notice */}
       {result?.requiresSATUpdateNotice && (
         <div className="mb-4">
           <AlertBanner type="error" message="Necesitas presentar aviso de actualización ante el SAT. Tu situación fiscal registrada no coincide con las obligaciones detectadas." />
         </div>
       )}
 
-      {/* Inconsistency alerts */}
       {alerts.map((alert, i) => (
         <div key={i} className="mb-3">
           <AlertBanner type="warning" message={typeof alert === 'string' ? alert : alert.message || JSON.stringify(alert)} />
         </div>
       ))}
 
-      {/* Obligations */}
       <SectionDivider label="Obligaciones detectadas" />
       <div className="space-y-4 mb-6">
         {obligations.map((obl, i) => (
@@ -159,7 +149,6 @@ export default function RegimeResultPage() {
         ))}
       </div>
 
-      {/* Missing data */}
       {missing.length > 0 && (
         <div className="mb-4">
           <AlertBanner
@@ -169,7 +158,6 @@ export default function RegimeResultPage() {
         </div>
       )}
 
-      {/* Next steps */}
       {nextSteps.length > 0 && (
         <>
           <SectionDivider label="Pasos siguientes" />
@@ -185,9 +173,16 @@ export default function RegimeResultPage() {
       )}
 
       <div className="flex gap-3">
-        <PrimaryButton label="Ver qué puedo deducir →" onClick={() => navigate('/app/expenses/catalog')} className="flex-1" />
-        <SecondaryButton label="Corregir fuentes" onClick={() => navigate('/app/regime/sources')} />
+        <PrimaryButton
+          label="Ver qué puedo deducir →"
+          onClick={() => navigate('/app/expenses/catalog')}
+          className="flex-1"
+        />
+        <SecondaryButton
+          label="Corregir fuentes"
+          onClick={() => navigate('/app/profile?tab=sources')}
+        />
       </div>
-    </AppLayout>
+    </div>
   )
 }

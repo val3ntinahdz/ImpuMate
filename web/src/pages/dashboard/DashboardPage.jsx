@@ -85,7 +85,7 @@ export default function DashboardPage() {
         <div className="mb-5">
           <AlertBanner
             type="info"
-            message="Empieza identificando tu régimen fiscal → Esto determina qué puedes deducir y cuánto debes pagar."
+            message="Empieza desde Perfil → Fuentes de ingreso para identificar tu régimen fiscal. Esto determina qué puedes deducir y cuánto debes pagar."
           />
         </div>
       )}
@@ -97,9 +97,9 @@ export default function DashboardPage() {
           icon="🏛️"
           color="border-green-200 bg-surface-m1"
           cta={hasRegime ? 'Ver resultado' : 'Empezar'}
-          onCta={() => navigate(hasRegime ? '/app/regime/result' : '/app/regime')}
+          onCta={() => navigate(hasRegime ? '/app/profile?tab=regime' : '/app/profile?tab=sources')}
           ctaSecondary={hasRegime ? 'Corregir fuentes' : null}
-          onCtaSecondary={() => navigate('/app/regime/sources')}
+          onCtaSecondary={() => navigate('/app/profile?tab=sources')}
         >
           {hasRegime ? (
             <div>

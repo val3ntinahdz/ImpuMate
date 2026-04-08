@@ -4,7 +4,7 @@ import { formatMXN } from '../../utils/format'
 export default function BigNumberCard({ amount, label, sublabel, bgColor = 'bg-primary', textColor = 'text-white', className = '' }) {
   return (
     <div className={`rounded-2xl p-6 ${bgColor} ${className}`}>
-      <p className={`text-[48px] leading-none font-bold ${textColor}`} style={{ fontFamily: 'Inter, sans-serif' }}>
+      <p className={`text-[48px] leading-none font-bold ${textColor}`} style={{ fontFamily: 'var(--font-family)' }}>
         {formatMXN(amount)}
       </p>
       {label && (
