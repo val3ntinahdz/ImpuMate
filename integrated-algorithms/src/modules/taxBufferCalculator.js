@@ -373,10 +373,10 @@ function calculateTaxBuffer(input) {
   const clientRetentions = estimateClientRetentions(incomeSources);
   result.grossIncomeByObligation = incomeByObligation;
 
-  const totalGross = Object.values(incomeByObligation).reduce((s, v) => s + v, 0);
+  /* const totalGross = Object.values(incomeByObligation).reduce((s, v) => s + v, 0);
   result.reasoning.push(
     `[1] Ingresos brutos anuales: $${totalGross.toFixed(2)} MXN en ${Object.keys(incomeByObligation).length} obligación(es).`,
-  );
+  ); */
 
   // ── Paso 2: Distribuir deducciones ───────────────────────────────────────
   const deductionsByObligation = distributeDeductions(

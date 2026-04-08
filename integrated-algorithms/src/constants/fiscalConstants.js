@@ -197,6 +197,20 @@ const ANNUAL_ISR_TARIFF = [
   { lowerBound: 4_511_707.38, upperBound: Infinity,        fixedFee: 1_414_947.85,  marginalRate: 0.3500 },
 ];
 
+const MONTHLY_ISR_TARIFF = [
+  { lowerBound: 0.01,      upperBound: 746.04,     fixedFee: 0.00,       marginalRate: 0.0192 },
+  { lowerBound: 746.05,    upperBound: 6332.05,    fixedFee: 14.32,      marginalRate: 0.0640 },
+  { lowerBound: 6332.06,   upperBound: 11128.01,   fixedFee: 371.83,     marginalRate: 0.1088 },
+  { lowerBound: 11128.02,  upperBound: 12935.82,   fixedFee: 893.63,     marginalRate: 0.1600 },
+  { lowerBound: 12935.83,  upperBound: 15487.71,   fixedFee: 1182.88,    marginalRate: 0.1792 },
+  { lowerBound: 15487.72,  upperBound: 31236.49,   fixedFee: 1640.18,    marginalRate: 0.2136 },
+  { lowerBound: 31236.50,  upperBound: 49233.00,   fixedFee: 5004.12,    marginalRate: 0.2352 },
+  { lowerBound: 49233.01,  upperBound: 93993.90,   fixedFee: 9236.89,    marginalRate: 0.3000 },
+  { lowerBound: 93993.91,  upperBound: 125325.20,  fixedFee: 22665.17,   marginalRate: 0.3200 },
+  { lowerBound: 125325.21, upperBound: 375975.61,  fixedFee: 32691.18,   marginalRate: 0.3400 },
+  { lowerBound: 375975.62, upperBound: Infinity,   fixedFee: 117912.32,  marginalRate: 0.3500 },
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // TASAS ISR RESICO — PERSONAS FÍSICAS (art. 113-E LISR)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -269,6 +283,7 @@ const FISCAL_CONSTANTS = {
   INVESTMENT_DEDUCTION_RATES_BUSINESS,
   INVESTMENT_DEDUCTION_RATES_RENTAL,
   ANNUAL_ISR_TARIFF,
+  MONTHLY_ISR_TARIFF,
   RESICO_ISR_RATES,
   BUFFER_SAFETY_MARGINS,
 };
