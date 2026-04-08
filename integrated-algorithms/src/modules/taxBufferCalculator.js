@@ -229,13 +229,13 @@ function calculateTaxableBase(incomeByObligation, deductionsByObligation) {
 
   for(let obligation in deductionsByObligation)
     taxableBase -= deductionsByObligation[obligation];
-
-  let taxableBaseObj = {};
+  /* let taxableBaseObj = {};
 
   for(let obligation in incomeByObligation)
     taxableBaseObj[obligation] = taxableBase;
 
-  return taxableBaseObj;
+  return taxableBaseObj;*/
+  return taxableBase;
 }
 
 /**
@@ -393,6 +393,7 @@ function calculateTaxBuffer(input) {
   const taxableBase = calculateTaxableBase(incomeByObligation, deductionsByObligation);
   result.taxableBaseByObligation = taxableBase;
 
+  // TO DO: To be modified
   for (const [o, base] of Object.entries(taxableBase)) {
     const deducted = deductionsByObligation[o] || 0;
     result.reasoning.push(
@@ -401,9 +402,11 @@ function calculateTaxBuffer(input) {
   }
 
   // ── Paso 4: ISR estimado ──────────────────────────────────────────────────
-  const isrByObligation = calculateISRByObligation(taxableBase, incomeByObligation);
+  // const isrByObligation = calculateISRByObligation(taxableBase, incomeByObligation);
+  const isrByObligation = applyAnnualISRTariff(taxableBase);
   result.estimatedISRByObligation = isrByObligation;
 
+  // TO DO: To be modified
   for (const [o, isr] of Object.entries(isrByObligation)) {
     const method = o.includes('RESICO') ? 'tasa directa art. 113-E' : 'tarifa art. 152 LISR';
     result.reasoning.push(`[4] ${o}: ISR estimado = $${isr.toFixed(2)} MXN (${method}).`);
