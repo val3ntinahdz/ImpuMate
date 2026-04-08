@@ -113,6 +113,20 @@ function applyAnnualISRTariff(taxableBaseMXN) {
   return Math.max(bracket.fixedFee + marginal, 0);
 }
 
+function applyMonthlyISRTariff(taxableBaseMXN) {
+  if(taxableBaseMXN <= 0) return 0;
+
+  let bracket = FISCAL_CONSTANTS.MONTHLY_ISR_TARIFF[0];
+  for (const current of FISCAL_CONSTANTS.MONTHLY_ISR_TARIFF) {
+    if (taxableBaseMXN >= current.lowerBound) bracket = current;
+    else break;
+  }
+
+  const excess   = taxableBaseMXN - bracket.lowerBound;
+  const marginal = excess * bracket.marginalRate;
+  return Math.max(bracket.fixedFee + marginal, 0);
+}
+
 /**
  * Aplica la tasa directa del RESICO (art. 113-E LISR).
  * Tasa plana por tramo sobre ingresos cobrados, SIN deducción de gastos.
@@ -219,23 +233,14 @@ function distributeDeductions(
  * Base gravable = ingreso bruto − deducciones asignadas (mínimo 0).
  */
 function calculateTaxableBase(incomeByObligation, deductionsByObligation) {
-  
-  let taxableAccumBeforeDeduc = 0;
-  
-  for(let obligation in incomeByObligation)
-    taxableAccumBeforeDeduc += incomeByObligation[obligation];
-  
-  let taxableBase = taxableAccumBeforeDeduc;
-
-  for(let obligation in deductionsByObligation)
-    taxableBase -= deductionsByObligation[obligation];
-  /* let taxableBaseObj = {};
-
-  for(let obligation in incomeByObligation)
-    taxableBaseObj[obligation] = taxableBase;
-
-  return taxableBaseObj;*/
-  return taxableBase;
+  const taxableBaseObj = {};
+  for (const obligation in incomeByObligation) {
+    taxableBaseObj[obligation] = Math.max(
+      (incomeByObligation[obligation] || 0) - (deductionsByObligation[obligation] || 0),
+      0,
+    );
+  }
+  return taxableBaseObj;
 }
 
 /**
@@ -257,6 +262,27 @@ function calculateISRByObligation(taxableBaseByObligation, incomeByObligation) {
       ];
     }),
   );
+}
+
+function calculateMonthlyISRByObligation(monthlyIncomeSources) {
+  const result = {};
+  for (const incomeSource of monthlyIncomeSources) {
+    if (incomeSource.obligationType === OBLIGATIONS.SERVICIOS_PROFESIONALES_REGIMEN_GENERAL) {
+      result[incomeSource.obligationType] = incomeSource.grossMonthlyAmountMXN * FISCAL_CONSTANTS.PROFESSIONAL_SERVICES_ISR_WITHHOLDING_RATE;
+      continue;
+    }
+    result[incomeSource.obligationType] = applyMonthlyISRTariff(incomeSource.grossMonthlyAmountMXN);
+  }
+  return result;
+}
+
+function calculateAnnualISR(incomeSources, deductibleExpenses) {
+  let taxableBase = 0;
+  for (const incomeSource of incomeSources)
+    taxableBase += incomeSource.grossAnnualAmountMXN;
+  taxableBase -= deductibleExpenses.personalDeductibles;
+  taxableBase -= deductibleExpenses.activityDeductibles;
+  return applyAnnualISRTariff(Math.max(taxableBase, 0));
 }
 
 /**
@@ -342,153 +368,30 @@ function applySecurityMargins(isrByObligation, ivaOwed) {
 function calculateTaxBuffer(input) {
   const result = createBaseBufferResult();
 
-  // ── Validar entrada ───────────────────────────────────────────────────────
-  const missing = validateBufferInput(input);
-  if (missing.length > 0) {
-    result.missingData.push(...missing);
-    result.reasoning.push('Cálculo incompleto: faltan datos. Ver missingData.');
-    return result;
+  const { currentObligations, incomeSources, annualContext } = input;
+  const deductibleExpenses = {
+    personalDeductibles: Math.max(annualContext.totalApprovedPersonalDeductiblesMXN  || 0, 0),
+    activityDeductibles: Math.max(annualContext.totalApprovedActivityDeductiblesMXN  || 0, 0)
   }
+  const monthlyIncomeSources = [];
+  for(let incomeSource in incomeSources)
+    monthlyIncomeSources.push({
+      obligationType: incomeSource.obligationType,
+      grossMonthlyAmountMXN: incomeSource.grossAnnualAmountMXN / 12
+    });
+  // STEP 1 - Calculate Annual ISR
+  const annualISR = calculateAnnualISR(incomeSources, deductibleExpenses);
+  result.annualISR = annualISR;
 
-  const { currentObligations, incomeSources, bufferHorizonMonths } = input;
-  const ctx = input.annualContext || {};
+  // STEP 2 - Calculate Monthly ISR per income source
+  const monthlyISRperIncome = calculateMonthlyISRByObligation(monthlyIncomeSources);
+  result.monthlyISRperIncome = monthlyISRperIncome;
 
-  const personalDeductibles  = Math.max(ctx.totalApprovedPersonalDeductiblesMXN  || 0, 0);
-  const activityDeductibles  = Math.max(ctx.totalApprovedActivityDeductiblesMXN  || 0, 0);
-  const ivaAcreditable       = Math.max(ctx.totalEstimatedIVAAcreditableMXN      || 0, 0);
-  const isrWithheld          = Math.max(ctx.isrAlreadyWithheldBySalaryMXN        || 0, 0);
-  const ivaAlreadyPaid       = Math.max(ctx.ivaAlreadyPaidToSATMXN               || 0, 0);
-
-  result.bufferHorizonMonths = bufferHorizonMonths;
-
-  // ── Advertencias de contexto ──────────────────────────────────────────────
-  if (personalDeductibles === 0 && activityDeductibles === 0)
-    result.warnings.push(
-      'Sin deducciones aprobadas. El buffer se calcula sobre ingreso bruto completo ' +
-      '(puede sobrestimar el ISR). Pasa los gastos aprobados por el Deductibles Calculator.',
-    );
-
-  // ── Paso 1: Agregar ingresos ──────────────────────────────────────────────
-  const incomeByObligation = aggregateIncomeByObligation(incomeSources);
-  const clientRetentions = estimateClientRetentions(incomeSources);
-  result.grossIncomeByObligation = incomeByObligation;
-
-  /* const totalGross = Object.values(incomeByObligation).reduce((s, v) => s + v, 0);
-  result.reasoning.push(
-    `[1] Ingresos brutos anuales: $${totalGross.toFixed(2)} MXN en ${Object.keys(incomeByObligation).length} obligación(es).`,
-  ); */
-
-  // ── Paso 2: Distribuir deducciones ───────────────────────────────────────
-  const deductionsByObligation = distributeDeductions(
-    personalDeductibles, activityDeductibles, incomeByObligation, currentObligations,
-  );
-
-  if (personalDeductibles + activityDeductibles > 0)
-    result.reasoning.push(
-      `[2] Deducciones totales: $${(personalDeductibles + activityDeductibles).toFixed(2)} MXN ` +
-      `(personales: $${personalDeductibles.toFixed(2)}, actividad: $${activityDeductibles.toFixed(2)}).`,
-    );
-
-  // ── Paso 3: Base gravable ─────────────────────────────────────────────────
-  const taxableBase = calculateTaxableBase(incomeByObligation, deductionsByObligation);
-  result.taxableBaseByObligation = taxableBase;
-
-  // TO DO: To be modified
-  for (const [o, base] of Object.entries(taxableBase)) {
-    const deducted = deductionsByObligation[o] || 0;
-    result.reasoning.push(
-      `[3] ${o}: base gravable = $${(incomeByObligation[o] || 0).toFixed(2)} − $${deducted.toFixed(2)} = $${base.toFixed(2)} MXN.`,
-    );
-  }
-
-  // ── Paso 4: ISR estimado ──────────────────────────────────────────────────
-  // const isrByObligation = calculateISRByObligation(taxableBase, incomeByObligation);
-  const isrByObligation = applyAnnualISRTariff(taxableBase);
-  result.estimatedISRByObligation = isrByObligation;
-
-  // TO DO: To be modified
-  for (const [o, isr] of Object.entries(isrByObligation)) {
-    const method = o.includes('RESICO') ? 'tasa directa art. 113-E' : 'tarifa art. 152 LISR';
-    result.reasoning.push(`[4] ${o}: ISR estimado = $${isr.toFixed(2)} MXN (${method}).`);
-  }
-
-  const totalISR = Object.values(isrByObligation).reduce((s, v) => s + v, 0);
-  result.estimatedClientWithheldISR = clientRetentions.isr;
-
-  // ── Paso 5: IVA pendiente (con IVA acreditable) ───────────────────────────
-  let ivaCausado = 0;
-  for (const src of incomeSources) {
-    if (src.isSubjectToIVA && src.grossAnnualAmountMXN > 0)
-      ivaCausado += src.grossAnnualAmountMXN * FISCAL_CONSTANTS.GENERAL_IVA_RATE;
-  }
-
-  result.estimatedClientWithheldIVA = clientRetentions.iva;
-  const ivaOwed = Math.max(ivaCausado - ivaAcreditable - ivaAlreadyPaid - clientRetentions.iva, 0);
-  result.estimatedIVACausado   = ivaCausado;
-  result.estimatedIVAAcreditable = ivaAcreditable;
-  result.estimatedIVAOwed      = ivaOwed;
-
-  if (ivaCausado > 0) {
-    result.reasoning.push(
-      `[5] IVA causado: $${ivaCausado.toFixed(2)} − acreditable $${ivaAcreditable.toFixed(2)} − ` +
-      `ya enterado $${ivaAlreadyPaid.toFixed(2)} − retenido por cliente $${clientRetentions.iva.toFixed(2)} = ` +
-      `IVA pendiente $${ivaOwed.toFixed(2)} MXN.`,
-    );
-    if (ivaAcreditable === 0)
-      result.warnings.push(
-        'IVA acreditable no proporcionado. El IVA puede estar sobrestimado. ' +
-        'Pasa totalEstimatedIVAAcreditableMXN desde el Deductions Accumulator.',
-      );
-  }
-
-  // ── Paso 6: Pasivo fiscal total ───────────────────────────────────────────
-  result.totalTaxLiability = totalISR + ivaOwed;
-  result.reasoning.push(
-    `[6] Pasivo fiscal bruto: ISR $${totalISR.toFixed(2)} + IVA $${ivaOwed.toFixed(2)} = $${result.totalTaxLiability.toFixed(2)} MXN.`,
-  );
-
-  // ── Paso 7: Descontar retenciones ─────────────────────────────────────────
-  result.remainingTaxAfterCredits = Math.max(result.totalTaxLiability - isrWithheld - clientRetentions.isr, 0);
-  if (isrWithheld > 0 || clientRetentions.isr > 0)
-    result.reasoning.push(
-      `[7] ISR acreditable: retenido por empleador $${isrWithheld.toFixed(2)} + retenido por cliente ` +
-      `$${clientRetentions.isr.toFixed(2)}. Pasivo neto: $${result.remainingTaxAfterCredits.toFixed(2)} MXN.`,
-    );
-
-  // ── Paso 8: Margen de seguridad ───────────────────────────────────────────
-  const { totalWithMargin, avgMargin, reasoning: marginReasoning } =
-    applySecurityMargins(isrByObligation, ivaOwed);
-
-  result.totalWithSafetyMargin = totalWithMargin;
-  result.safetyMarginApplied   = avgMargin;
-  result.reasoning.push(...marginReasoning);
-
-  // ── Paso 9: Provisión mensual y meta de colchón ───────────────────────────
-  const effectiveBase = Math.max(totalWithMargin - isrWithheld - clientRetentions.isr, 0);
-  result.monthlyTaxLiability = result.remainingTaxAfterCredits / 12;
-  result.monthlyTaxLiabilityWithSafetyMargin = effectiveBase / 12;
-  result.recommendedMonthlyBuffer = result.monthlyTaxLiabilityWithSafetyMargin;
-  result.targetBufferFund = result.recommendedMonthlyBuffer * bufferHorizonMonths;
-
-  result.reasoning.push(
-    `[9] Provisión mensual promedio: ($${totalWithMargin.toFixed(2)} − $${isrWithheld.toFixed(2)} retenido por empleador ` +
-    `− $${clientRetentions.isr.toFixed(2)} retenido por cliente) ÷ 12 = ` +
-    `$${result.recommendedMonthlyBuffer.toFixed(2)} MXN/mes.`,
-  );
-  result.reasoning.push(
-    `[10] Meta de colchón: $${result.recommendedMonthlyBuffer.toFixed(2)} × ${bufferHorizonMonths} mes(es) = ` +
-    `$${result.targetBufferFund.toFixed(2)} MXN.`,
-  );
-
-  // ── Advertencia RESICO sobre límite ──────────────────────────────────────
-  for (const [o, income] of Object.entries(incomeByObligation)) {
-    if (o.includes('RESICO') && income > FISCAL_CONSTANTS.RESICO_ANNUAL_INCOME_LIMIT_MXN)
-      result.warnings.push(
-        `ATENCIÓN: ingreso bajo ${o} ($${income.toFixed(2)}) supera el límite RESICO ` +
-        `($${FISCAL_CONSTANTS.RESICO_ANNUAL_INCOME_LIMIT_MXN.toLocaleString()} MXN). ` +
-        `Puede ser necesario cambiar de régimen. Fuente: LISR art. 113-E.`,
-      );
-  }
+  // STEP 3 - How many taxes will I pay for the current fiscal session?
+  let dueTaxes = annualISR;
+  for(let obligation in monthlyISRperIncome)
+    dueTaxes -= monthlyISRperIncome[obligation];
+  result.dueTaxes;
 
   return result;
 }

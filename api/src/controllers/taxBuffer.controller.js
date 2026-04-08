@@ -68,6 +68,7 @@ async function calculateBuffer(req, res, next) {
     const result = calculateTaxBuffer(input);
 
     console.log("== calculateBuffer ==");
+    console.log("input = ", input);
     console.log("result = ", result);
 
     await taxBufferResults.save(req.params.sessionId, result);
