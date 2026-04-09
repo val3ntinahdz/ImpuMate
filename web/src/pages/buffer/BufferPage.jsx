@@ -14,15 +14,7 @@ import { getDeductionsSummary } from '../../api/deductions'
 import { getIncomeSources } from '../../api/incomeSources'
 import { calculateTaxBuffer } from '../../api/taxBuffer'
 import useSessionStore from '../../store/useSessionStore'
-import { formatMXN, OBLIGATION_LABELS } from '../../utils/format'
-
-const HORIZON_OPTIONS = [
-  { value: '1', label: '1 mes' },
-  { value: '2', label: '2 meses' },
-  { value: '3', label: '3 meses (recomendado)' },
-  { value: '6', label: '6 meses' },
-  { value: '12', label: '12 meses' },
-]
+import BufferResultPage from './BufferResultPage'
 
 export default function BufferPage() {
   const navigate = useNavigate()
@@ -99,14 +91,9 @@ export default function BufferPage() {
 
   return (
     <AppLayout>
-      <PageHeader
-        title="Fondo para impuestos"
-        subtitle="Ajusta los parámetros antes de calcular cuánto debes apartar cada mes."
-        breadcrumb={[{ label: 'Fondo para impuestos', href: '/app/buffer' }]}
-      />
-
       {error && <div className="mb-4"><AlertBanner type="error" message={error} /></div>}
 
+      <BufferResultPage />
       {noDeductions && (
         <div className="mb-5">
           <AlertBanner
@@ -117,79 +104,6 @@ export default function BufferPage() {
           />
         </div>
       )}
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        {/* Parameters form */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-          <h2 className="font-semibold text-text-primary">Parámetros del cálculo</h2>
-
-          <SelectDropdown
-            label="Horizonte del fondo"
-            name="bufferHorizonMonths"
-            value={form.bufferHorizonMonths}
-            onChange={handleChange}
-            options={HORIZON_OPTIONS}
-            hint="¿De cuántos meses quieres construir tu colchón fiscal?"
-          />
-          <MoneyInput
-            label="ISR ya retenido por tu empleador (opcional)"
-            name="isrAlreadyWithheldMxn"
-            value={form.isrAlreadyWithheldMxn}
-            onChange={handleChange}
-            hint="Se descontará del pasivo total"
-          />
-          <MoneyInput
-            label="IVA ya enterado en pagos provisionales (opcional)"
-            name="ivaAlreadyPaidMxn"
-            value={form.ivaAlreadyPaidMxn}
-            onChange={handleChange}
-            hint="Reduce el IVA pendiente"
-          />
-        </div>
-
-        {/* Confirmation panel */}
-        <div className="bg-surface-gray rounded-xl p-5">
-          <h2 className="font-semibold text-text-primary mb-3">Resumen de datos</h2>
-          <div className="space-y-2 text-sm">
-            {Object.entries(incomeByObligation).map(([obl, amount]) => (
-              <div key={obl} className="flex justify-between">
-                <span className="text-text-secondary">{OBLIGATION_LABELS[obl] || obl}</span>
-                <span className="font-semibold text-text-primary">{formatMXN(amount)}</span>
-              </div>
-            ))}
-            {summary && (
-              <>
-                <SectionDivider label="Deducciones" />
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Personales</span>
-                  <span className="font-semibold text-primary">{formatMXN(summary.totalPersonalDeductiblesMxn)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">De actividad</span>
-                  <span className="font-semibold text-primary">{formatMXN(summary.totalActivityDeductiblesMxn)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">IVA acreditable</span>
-                  <span className="font-semibold text-primary">{formatMXN(summary.totalIvaAcreditableMxn)}</span>
-                </div>
-              </>
-            )}
-            <SectionDivider label="Créditos fiscales" />
-            <div className="flex justify-between">
-              <span className="text-text-secondary">ISR retenido configurado</span>
-              <span className="font-semibold">{formatMXN(Number(form.isrAlreadyWithheldMxn) || 0)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-secondary">IVA ya pagado</span>
-              <span className="font-semibold">{formatMXN(Number(form.ivaAlreadyPaidMxn) || 0)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-text-secondary">Horizonte</span>
-              <span className="font-semibold">{form.bufferHorizonMonths} {Number(form.bufferHorizonMonths) === 1 ? 'mes' : 'meses'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="flex gap-3 mt-6">
         <PrimaryButton

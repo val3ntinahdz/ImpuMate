@@ -68,7 +68,9 @@ export default function BufferResultPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [sessionId])
+  useEffect(() => { 
+    load() 
+  }, [sessionId])
 
   const handleRecalculate = async () => {
     setRecalculating(true)
@@ -99,9 +101,10 @@ export default function BufferResultPage() {
   }
 
   const isZero = result?.recommendedMonthlyBuffer === 0
+  console.log("RESULT MONTLY INCOME == ", result);
 
   return (
-    <AppLayout>
+    <>
       <PageHeader
         title="Fondo para Impuestos"
         subtitle={`Ejercicio ${exerciseYear || ''}`}
@@ -113,33 +116,14 @@ export default function BufferResultPage() {
       {/* THE main card ⭐ */}
       <div className="mb-6">
         <BigNumberCard
-          amount={result?.recommendedMonthlyBuffer}
+          amount={result?.dueTaxesMonthly + result?.dueIVA}
           label="Debes apartar cada mes"
           sublabel={`Para cubrir tus impuestos del ejercicio ${exerciseYear || ''}`}
           bgColor="bg-primary"
           textColor="text-white"
         />
-        <div className="mt-2 flex gap-2">
-          <span className="text-xs bg-white border border-gray-200 text-text-secondary px-3 py-1 rounded-full">
-            Colchón objetivo: {result?.bufferHorizonMonths || bufferHorizonMonths} {Number(result?.bufferHorizonMonths || 1) === 1 ? 'mes' : 'meses'}
-          </span>
-          {result?.safetyMarginApplied && (
-            <span className="text-xs bg-orange-50 border border-orange-200 text-orange-700 px-3 py-1 rounded-full">
-              Incluye margen de seguridad {((result.safetyMarginApplied - 1) * 100).toFixed(0)}%
-            </span>
-          )}
-        </div>
-      </div>
 
-      {/* Zero buffer special case */}
-      {isZero && (
-        <div className="mb-5">
-          <AlertBanner
-            type="info"
-            message="Tu empleador probablemente ya retuvo suficiente ISR. Es posible que tengas saldo a favor en tu declaración de abril. Verifícalo con un contador antes de gastar ese dinero."
-          />
-        </div>
-      )}
+      </div>
 
       {/* Warnings */}
       {result?.warnings?.length > 0 && (
@@ -150,17 +134,77 @@ export default function BufferResultPage() {
         </div>
       )}
 
+      {/* Deducciones breakdown */}
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+        <h2 className="font-semibold text-text-primary mb-3">Deducciones autorizadas</h2>
+        <div className="divide-y divide-gray-50">
+          <AmountRow 
+            label={`Deducciones personales aprobadas:`}
+            amount={result.annualContext.totalApprovedPersonalDeductiblesMXN}
+          />
+          <AmountRow 
+            label={`Deducciones de actividad aprobadas:`}
+            amount={result.annualContext.totalApprovedActivityDeductiblesMXN}
+          />
+        </div>
+     </div> 
+
       {/* ISR breakdown */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-        <h2 className="font-semibold text-text-primary mb-3">Desglose ISR por obligación</h2>
+        <h2 className="font-semibold text-text-primary mb-3">Desglose ISR</h2>
         <div className="divide-y divide-gray-50">
-          {Object.entries(result?.estimatedISRByObligation || {}).map(([obl, amount]) => (
-            <AmountRow
-              key={obl}
-              label={OBLIGATION_LABELS[obl] || obl}
-              amount={amount}
-            />
-          ))}
+
+          { 
+            result.monthlyIncomeSources.map(income => {
+              return (
+                <AmountRow 
+                  key={123}
+                  label={`Sueldo mensual: ${income.obligationType}`}
+                  amount={income.grossMonthlyAmountMXN}
+                />
+              )
+            })
+          }
+
+          {
+            Object.entries(result.monthlyISRperIncome).map(i => {
+              return (
+                <AmountRow 
+                  label={`ISR mensual retenido: ${i[0]}`}
+                  amount={i[1]}
+                />
+              )
+            })
+          }
+
+          {
+            Object.entries(result.annualWithheldISRperIncome).map(i => {
+              return (
+                <AmountRow 
+                  label={`ISR anual retenido: ${i[0]}`}
+                  amount={i[1]}
+                />
+              )
+            })
+          }
+          
+          <AmountRow 
+            label={"ISR anual final (considerando deducciones):"}
+            amount={result.annualISR}
+          />
+
+          <AmountRow 
+            label={"Pronóstico anual de impuestos excedentes (a pagar en declaración anual): "}
+            amount={result.dueTaxes}
+            className="text-red-50 font-bold italic"
+          />
+
+          <AmountRow
+            label={"Reserva mensual sugerida para pago de ISR: "}
+            amount={result.dueTaxesMonthly}
+            color="text-red-600"
+          />
         </div>
       </div>
 
@@ -168,30 +212,9 @@ export default function BufferResultPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="font-semibold text-text-primary mb-3">Desglose IVA</h2>
         <div className="divide-y divide-gray-50">
-          <AmountRow label="IVA causado" amount={result?.estimatedIVACausado} />
-          <AmountRow label="IVA acreditable" amount={result?.estimatedIVAAcreditable} isCredit />
-          <AmountRow label="IVA retenido por cliente" amount={result?.estimatedClientWithheldIVA} isCredit />
-          <AmountRow label="IVA pendiente neto" amount={result?.estimatedIVAOwed} isBold color="text-secondary" />
-        </div>
-      </div>
-
-      {/* Totals */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-        <div className="divide-y divide-gray-50">
-          <AmountRow label="Pasivo fiscal anual estimado" amount={result?.totalTaxLiability} isBold />
-          <AmountRow label="ISR retenido por cliente" amount={result?.estimatedClientWithheldISR} isCredit />
-          <AmountRow
-            label={`Pasivo anual con margen${result?.safetyMarginApplied ? ` (×${result.safetyMarginApplied})` : ''}`}
-            amount={result?.totalWithSafetyMargin}
-            isBold
-            color="text-status-warning"
-          />
-          <AmountRow label="Provisión mensual sugerida" amount={result?.recommendedMonthlyBuffer} isBold color="text-secondary" />
-          <AmountRow
-            label={`Meta de colchón (${result?.bufferHorizonMonths || bufferHorizonMonths} ${Number(result?.bufferHorizonMonths || 1) === 1 ? 'mes' : 'meses'})`}
-            amount={result?.targetBufferFund}
-            isBold
-          />
+          <AmountRow label="IVA trasladado" amount={result?.IVA} />
+          <AmountRow label="IVA retenido por cliente" amount={result?.withheldIVA}/>
+          <AmountRow label="Pronóstico de IVA por pagar" amount={result?.dueIVA} color="text-red-600" />
         </div>
       </div>
 
@@ -238,6 +261,6 @@ export default function BufferResultPage() {
         <SecondaryButton label="Agregar más gastos" onClick={() => navigate('/app/expenses/new')} />
         <SecondaryButton label="Volver al dashboard" onClick={() => navigate('/app/dashboard')} />
       </div>
-    </AppLayout>
+    </>
   )
 }
