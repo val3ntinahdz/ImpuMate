@@ -218,12 +218,12 @@ export default function ExpensesPage() {
 
   return (
     <AppLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <PageHeader
           title="Gastos y deducciones"
           subtitle="Registra y evalúa la deducibilidad de tus gastos."
         />
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <SecondaryButton
             label="Catálogo"
             onClick={() => navigate('/app/expenses/catalog')}
