@@ -250,6 +250,46 @@ export default function BufferResultPage() {
         <p className="text-xs text-text-secondary italic text-center mb-6 px-4">{result.disclaimer}</p>
       )}
 
+      {/* Recomendación */}
+      <div className="bg-accent/10 border border-accent/30 rounded-xl p-5 mb-4">
+        <h2 className="font-semibold text-accent mb-3">¿Qué hacer ahora?</h2>
+        <ul className="space-y-2">
+          <li className="flex gap-2 text-sm text-text-primary">
+            <span className="text-accent font-bold">1.</span>
+            Aparta <span className="font-semibold mx-1">{formatMXN(result?.dueTaxesMonthly + result?.dueIVA)}</span> cada mes en una cuenta separada destinada solo a impuestos.
+          </li>
+          {result?.dueIVA > 0 && (
+            <li className="flex gap-2 text-sm text-text-primary">
+              <span className="text-accent font-bold">2.</span>
+              Declara y paga tu IVA mensualmente antes del día 17 de cada mes.
+            </li>
+          )}
+          <li className="flex gap-2 text-sm text-text-primary">
+            <span className="text-accent font-bold">{result?.dueIVA > 0 ? '3' : '2'}.</span>
+            Tu declaración anual de ISR vence en abril. Guarda todos tus CFDIs de gastos deducibles.
+          </li>
+          <li className="flex gap-2 text-sm text-text-primary">
+            <span className="text-accent font-bold">{result?.dueIVA > 0 ? '4' : '3'}.</span>
+            Registra nuevos gastos cada vez que tengas un CFDI para mantener tu fondo actualizado.
+          </li>
+          <li className="flex gap-2 text-sm text-text-primary">
+            <span className="text-accent font-bold">{result?.dueIVA > 0 ? '5' : '4'}.</span>
+            <span>
+              No dejes este dinero quieto. Apártalo en{' '}
+              <a
+                href="https://www.bancoazteca.com.mx/productos/inversion/inversion-azteca.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-accent underline hover:opacity-80 transition-opacity"
+              >
+                Inversión Azteca de Banco Azteca
+              </a>
+              {' '} genera rendimientos mientras esperas el momento de pagar tus impuestos, y lo tienes disponible cuando el SAT lo requiera.
+            </span>
+          </li>
+        </ul>
+      </div>
+
       <SectionDivider />
 
       <div className="flex flex-col sm:flex-row gap-3">
