@@ -25,6 +25,7 @@ export default function BufferPage() {
   const [loading, setLoading] = useState(true)
   const [calculating, setCalculating] = useState(false)
   const [error, setError] = useState(null)
+  const [resultKey, setResultKey] = useState(0)
 
   const [form, setForm] = useState({
     bufferHorizonMonths: '3',
@@ -70,7 +71,7 @@ export default function BufferPage() {
       setSession(updated)
       // Then calculate
       await calculateTaxBuffer(sessionId)
-      navigate('/app/buffer/result')
+      setResultKey(k => k + 1)
     } catch (err) {
       setError(err.response?.data?.error || 'Error al calcular el fondo.')
     } finally {
@@ -93,7 +94,7 @@ export default function BufferPage() {
     <AppLayout>
       {error && <div className="mb-4"><AlertBanner type="error" message={error} /></div>}
 
-      <BufferResultPage />
+      <BufferResultPage key={resultKey} />
       {noDeductions && (
         <div className="mb-5">
           <AlertBanner
@@ -101,21 +102,11 @@ export default function BufferPage() {
             message="Sin deducciones registradas, el buffer puede estar sobreestimado. ¿Quieres agregar gastos primero?"
             action="Agregar gastos"
             onAction={() => navigate('/app/expenses/new')}
+            secondAction="Calcular de todas formas"
+            onSecondAction={handleCalculate}
           />
         </div>
       )}
-
-      <div className="flex gap-3 mt-6">
-        <PrimaryButton
-          label={calculating ? 'Calculando…' : 'Calcular mi fondo mensual'}
-          onClick={handleCalculate}
-          loading={calculating}
-          className="flex-1"
-        />
-        {noDeductions && (
-          <SecondaryButton label="Calcular de todas formas" onClick={handleCalculate} />
-        )}
-      </div>
     </AppLayout>
   )
 }

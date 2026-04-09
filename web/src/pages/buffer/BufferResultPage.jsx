@@ -10,7 +10,7 @@ import SecondaryButton from '../../components/ui/SecondaryButton'
 import SectionDivider from '../../components/ui/SectionDivider'
 import { calculateTaxBuffer, getLatestBuffer } from '../../api/taxBuffer'
 import useSessionStore from '../../store/useSessionStore'
-import { formatMXN, OBLIGATION_LABELS } from '../../utils/format'
+import { formatMXN } from '../../utils/format'
 
 function AmountRow({ label, amount, isCredit = false, isBold = false, color }) {
   return (
@@ -139,13 +139,13 @@ export default function BufferResultPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="font-semibold text-text-primary mb-3">Deducciones autorizadas</h2>
         <div className="divide-y divide-gray-50">
-          <AmountRow 
+          <AmountRow
             label={`Deducciones personales aprobadas:`}
-            amount={result.annualContext.totalApprovedPersonalDeductiblesMXN}
+            amount={result.annualContext?.totalApprovedPersonalDeductiblesMXN}
           />
-          <AmountRow 
+          <AmountRow
             label={`Deducciones de actividad aprobadas:`}
-            amount={result.annualContext.totalApprovedActivityDeductiblesMXN}
+            amount={result.annualContext?.totalApprovedActivityDeductiblesMXN}
           />
         </div>
      </div> 
