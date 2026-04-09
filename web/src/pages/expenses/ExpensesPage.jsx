@@ -197,7 +197,7 @@ export default function ExpensesPage() {
 
         // Required PERSONAL_MEDICAL extra fields
         params.set('beneficiaryRelationship', 'SELF')
-        params.set('providerHasRequiredProfessionalLicense', 'false')
+        params.set('providerHasRequiredProfessionalLicense', 'true')
 
         const qs = params.toString()
         navigate(`/app/expenses/new/${MOCK_IDENTIFIED_CATEGORY}${qs ? `?${qs}` : ''}`)
