@@ -401,6 +401,10 @@ function calculateTaxBuffer(input) {
       grossMonthlyAmountMXN: incomeSource.grossAnnualAmountMXN / 12
     });
   }
+
+  // STEP 0
+  result.annualContext = annualContext;
+
   // STEP 1 - Calculate Annual ISR
   const annualISR = calculateAnnualISR(incomeSources, deductibleExpenses);
   result.annualISR = annualISR;
