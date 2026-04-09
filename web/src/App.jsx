@@ -108,6 +108,9 @@ export default function App() {
         } />
 
         {/* Expenses module */}
+        <Route path="/expenses/new" element={
+          <RequireSession><Navigate to="/app/expenses/new" replace /></RequireSession>
+        } />
         <Route path="/app/expenses" element={
           <RequireSession><ExpensesPage /></RequireSession>
         } />

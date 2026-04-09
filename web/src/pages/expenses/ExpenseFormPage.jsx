@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/ui/PageHeader'
 import MoneyInput from '../../components/ui/MoneyInput'
@@ -35,8 +35,11 @@ const COMMON_TOGGLES = [
 export default function ExpenseFormPage() {
   const navigate = useNavigate()
   const { category, id } = useParams()
+  const [searchParams] = useSearchParams()
   const { sessionId } = useSessionStore()
   const isEdit = Boolean(id) && !category
+
+  const didApplyPrefillRef = useRef(false)
 
   // Determine actual category
   const [resolvedCategory, setResolvedCategory] = useState(category || null)
@@ -55,6 +58,65 @@ export default function ExpenseFormPage() {
   const [apiError, setApiError] = useState(null)
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (isEdit) return
+    if (didApplyPrefillRef.current) return
+    if (!resolvedCategory) return
+
+    const parseBooleanParam = (raw) => {
+      if (raw === null || raw === undefined) return undefined
+      const v = String(raw).trim().toLowerCase()
+      if (v === 'true' || v === '1' || v === 'yes' || v === 'on') return true
+      if (v === 'false' || v === '0' || v === 'no' || v === 'off') return false
+      return undefined
+    }
+
+    const baseStringKeys = ['amountMXN', 'paymentMethod']
+    const baseBooleanKeys = [
+      'hasCFDI',
+      'invoiceReceiverRFCMatchesTaxpayer',
+      'paidFromTaxpayerAccount',
+      'paidInRelevantFiscalYear',
+    ]
+
+    const extraKeys = extraFields.map(f => f.name)
+    const extraBooleanKeys = extraFields
+      .filter(f => f.type === 'toggle')
+      .map(f => f.name)
+
+    const allBooleanKeys = new Set([...baseBooleanKeys, ...extraBooleanKeys])
+    const allKeys = [...baseStringKeys, ...baseBooleanKeys, ...extraKeys]
+
+    setForm(prev => {
+      const next = { ...prev }
+
+      for (const key of allKeys) {
+        if (!searchParams.has(key)) continue
+
+        if (key === 'amountMXN') {
+          const raw = searchParams.get(key)
+          // Keep the same numeric cleaning behavior as MoneyInput.
+          const cleaned = String(raw || '').replace(/[^0-9.]/g, '')
+          const parts = cleaned.split('.')
+          next[key] = parts[0] + (parts.length > 1 ? '.' + parts[1] : '')
+          continue
+        }
+
+        if (allBooleanKeys.has(key)) {
+          const parsed = parseBooleanParam(searchParams.get(key))
+          if (parsed !== undefined) next[key] = parsed
+          continue
+        }
+
+        next[key] = searchParams.get(key) ?? ''
+      }
+
+      return next
+    })
+
+    didApplyPrefillRef.current = true
+  }, [extraFields, isEdit, resolvedCategory, searchParams])
 
   useEffect(() => {
     if (!isEdit) return

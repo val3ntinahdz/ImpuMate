@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/ui/PageHeader'
 
@@ -39,6 +39,7 @@ const CATEGORIES = [
 
 export default function ExpenseNewPage() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <AppLayout>
@@ -58,7 +59,7 @@ export default function ExpenseNewPage() {
               {group.items.map(item => (
                 <button
                   key={item.value}
-                  onClick={() => navigate(`/app/expenses/new/${item.value}`)}
+                  onClick={() => navigate(`/app/expenses/new/${item.value}${location.search}`)}
                   className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-surface-gray transition-colors group"
                 >
                   <span className="text-sm text-text-primary group-hover:text-primary transition-colors">
